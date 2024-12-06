@@ -1,0 +1,15 @@
+
+response = {"text":"Oops! 😔 It seems the extension isn’t configured properly.  Make sure you’ve provided a *valid* token with *all scopes*! ✅  *","bot":{"name":"Convert-bot","image":"https://pbs.twimg.com/profile_images/1488073274991030274/_WcKbgdj_400x400.jpg"},"card":{"theme":"modern-inline"}};
+reqUrl = "https://api.cloudconvert.com/v2/jobs";
+apiResponse = invokeurl
+[
+	url :reqUrl
+	type :GET
+	connection:"cloudtest"
+];
+if(apiResponse.get("data") != null)
+{
+	configCard = {"text":"🎉You’ve already *successfully configured* Cloud Convert! To reconfigure, go to *Connection* and *Revoke* the service 🔄","bot":{"name":"Convert-bot","image":"https://pbs.twimg.com/profile_images/1488073274991030274/_WcKbgdj_400x400.jpg"},"card":{"theme":"modern-inline"}};
+	return configCard;
+}
+return response;

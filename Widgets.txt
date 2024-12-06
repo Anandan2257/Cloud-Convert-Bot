@@ -1,0 +1,41 @@
+
+elements = list();
+sections = list();
+elements.add({"type":"title","text":"You can view and update all your file conversions here"});
+listUrl = "https://api.cloudconvert.com/v2/jobs";
+getUrl = "https://api.cloudconvert.com/v2/files";
+apiResponse = invokeurl
+[
+	url :listUrl
+	type :GET
+	connection:"cloudtest"
+];
+info apiResponse;
+jobs = apiResponse.get("data");
+count = 0;
+buttons = list();
+pageSize = 4;
+buttons.add({"label":"Next page >","type":"invoke.function","name":"cloudConvertNextPage","id":pageSize});
+for each  job in jobs
+{
+	if(count < pageSize)
+	{
+		jobId = job.get("id");
+		params = Map();
+		fetchUrl = invokeurl
+		[
+			url :getUrl + "/" + jobId
+			type :GET
+			connection:"cloudtest"
+		];
+		info fetchUrl;
+		jobData = fetchUrl.get("data");
+		elements.add({"type":"fields","data":{{"Source Format":jobData.get("source_format")},{"Destination Format":jobData.get("destination_format")},{"Status":jobData.get("status")}},"style":{"short":false}});
+		elements.add({"type":"buttons","buttons":{{"label":"Convert","type":"invoke.function","name":"cloudConvertAction","id":jobData.get("id") + "|convert"},{"label":"Cancel","type":"invoke.function","name":"cloudConvertAction","id":jobData.get("id") + "|cancel"}}});
+		elements.add({"type":"divider"});
+		sections.add({"id":count,"elements":elements});
+		elements = list();
+		count = count + 1;
+	}
+}
+return {"type":"applet","tabs":{{"label":"Home","id":"homeTab"}},"active_tab":"homeTab","header":{"title":"Conversion Page ->1","navigation":"new","buttons":buttons},"sections":sections};

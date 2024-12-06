@@ -1,0 +1,47 @@
+
+response = Map();
+if(message.containsIgnoreCase("HI") || message.containsIgnoreCase("HEY"))
+{
+	text = "✨Hey there! I’m CloudConvert Bot, your file-transforming wizard!🧙‍♂️⚡Need to convert files, extract text, or make file magic happen?🪄📂 You’re in the right place!🚀";
+	suggestions = List();
+	suggestions.add(Map({"text":"Help"}));
+	suggestions.add(Map({"text":"Supported Formats"}));
+	suggestions.add(Map({"text":"Start Conversion"}));
+	suggestions.add(Map({"text":"API Setup Guide"}));
+	response.put("suggestions",Map({"list":suggestions}));
+}
+else if(message.equalsIgnoreCase("Help"))
+{
+	helpCard = {"text":"How to use FileConverter Bot:  Quick and Easy!🚀","bot":{"name":"Cloud Convert","image":"https://pbs.twimg.com/profile_images/1488073274991030274/_WcKbgdj_400x400.jpg"},"card":{"title":"Help Card :","theme":"modern-inline"},"slides":{{"type":"list","title":"Features :","data":{"🔧Use the Configuration option in the bot menu to authenticate and configure..","✉️Send a message in the format *Convert <desired format>* to convert a file.","📂Specify the file type, like PDF, JPG, MP4, etc., along with the file name and format.","🔗Attach the url and confirm the conversion process.","📜Use /Supported Formats to view all supported file types.","🎨You can convert images, documents, audio files, and more!","✔️Provide the API key to the bot using the configuration menu and complete verification."}}}};
+	return helpCard;
+}
+else if(message.equalsIgnoreCase("Supported Formats"))
+{
+	helpCard = {"bot":{"name":"Supported Formats: ","image":"https://pbs.twimg.com/profile_images/1488073274991030274/_WcKbgdj_400x400.jpg"},"card":{"title":"File Formats: ","theme":"modern-inline"},"slides":{{"type":"table","title":"Document Formats: ","data":{"headers":{"User Format","Convert Formats"},"rows":{{"User Format":"PDF","Convert Formats":"DOCX, PPTX, XLSX, TXT, ODT, HTML, EPUB, RTF"},{"User Format":"DOCX","Convert Formats":"PDF, TXT, ODT, DOC, HTML"},{"User Format":"XLSX","Convert Formats":"PDF, CSV, ODT, XLS, TXT"},{"User Format":"PPTX","Convert Formats":"PDF, ODP, PPT, JPG, PNG"},{"User Format":"TXT","Convert Formats":"PDF, DOCX, ODT, HTML, EPUB"},{"User Format":"ODT","Convert Formats":"PDF, DOCX, TXT, HTML"}}}},{"type":"table","title":"Image Formats:","data":{"headers":{"User Format","Convert Format"},"rows":{{"User Format":"JPG (JPEG)","Convert Format":"PNG, BMP, GIF, TIFF, WEBP, SVG, PDF"},{"User Format":"PNG","Convert Format":"JPG, BMP, GIF, TIFF, SVG, PDF"},{"User Format":"BMP","Convert Format":"JPG, PNG, TIFF, PDF"},{"User Format":"GIF","Convert Format":"JPG, PNG, TIFF, BMP"},{"User Format":"TIFF","Convert Format":"JPG, PNG, BMP, PDF"},{"User Format":"SVG","Convert Format":"PNG, JPG, PDF"},{"User Format":"WEBP","Convert Format":"PNG, JPG, TIFF, PDF"}}}},{"type":"table","title":"Audio Formats and Video Formats:","data":{"headers":{"User Format","Convert Format"},"rows":{{"User Format":"MP3","Convert Format":"WAV, FLAC, OGG, AAC, M4A"},{"User Format":"WAV","Convert Format":"MP3, FLAC, OGG, AAC"},{"User Format":"FLAC","Convert Format":"MP3, WAV, OGG, AAC"},{"User Format":"M4A","Convert Format":"MP3, WAV, FLAC, OGG"},{"User Format":"MP4","Convert Format":"AVI, MOV, MKV, FLV, WEBM"},{"User Format":"AVI","Convert Format":"MP4, MOV, MKV, FLV, WEBM"},{"User Format":"MOV","Convert Format":"MP4, AVI, MKV, FLV, WEBM"}}}}},"text":"📂 You can select file formats using the tables below: 📋✨"};
+	return helpCard;
+}
+else if(message.startsWithIgnoreCase("Start Conversion"))
+{
+	text = "📎Attach your file and use the /convert [format] command (e.g., /convert).💼 I’ll handle all types of files—Word, PDF, images, and more!📤 Upload now and watch the magic happen! 🚀.";
+	spaceIndex = message.indexOf(" ");
+	if(spaceIndex != -1)
+	{
+		targetFormat = message.substring(spaceIndex + 1,message.length()).toLowerCase();
+		response.put("text","You requested a conversion to the " + targetFormat.toUpperCase() + " format. Please upload the file.");
+	}
+	else
+	{
+		response.put("text",text);
+	}
+}
+else if(message.startsWithIgnoreCase("API Setup Guide"))
+{
+	response = {"text":"API Setup Guide","slides":{{"type":"text","title":"Step 1 : ","data":"🔑 Click this link to create your API key in CloudConvert: [Create API Key](https://cloudconvert.com/dashboard/api/v2/keys)"},{"type":"text","title":"Step 2 : ","data":"✔️ Choose the first 6 options❌ Do not choose the last two (mandatory)!\n1. preset.read \n2. preset.write"},{"type":"text","title":"Step 3 : ","data":"*Copy your API Key* and keep it safe! It’s a long string of characters that you’ll use to connect your bot. Make sure to *save it securely*! 💡 "},{"type":"text","title":"Step 4 : ","data":"🌟To get started, go to *Configurations* in the bot menu. This will allow you to authenticate and set up your API key.🔑Let's make file magic happen! 🚀"},{"type":"text","title":"Step 5 : ","data":"📧 *Check your mail* for the verification link from CloudConvert to verify your account.\n🔑 *Next:* Paste your API key in the configuration as :`Bearer (space) API key`\nYou're all set to start converting! 🚀"},{"type":"text","title":"Ready to Convert? 🔄","data":"🚀 *Go to /convert* to convert all types of files—documents, images, videos, and more! 📂Just send the command along with the desired format (e.g., `/convert`) and watch the magic happen! ✨"}}};
+	return response;
+}
+else
+{
+	text = "👋I’m here to help! Say \"Hi\" 😊or ask for \"Help\"❓to get started.";
+}
+response.put("text",text);
+return response;

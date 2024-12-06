@@ -1,0 +1,124 @@
+
+response = Map();
+formValues = form.get("values");
+info formValues;
+params = Map();
+changeParams = Map();
+// Fields from formValues for updating
+newAlias = formValues.get("newAlias");
+newDesc = formValues.get("newDesc");
+oldAlias = formValues.get("oldAlias");
+urlChange = false;
+// Check if newUrl field is provided
+if(formValues.get("newUrl") != null)
+{
+	newUrl = formValues.get("newUrl");
+	urlChange = true;
+}
+// Define URLs for updating and changing
+updateUrl = "https://api.cloudconvert.com/v2/file/update";
+// Placeholder URL for CloudConvert or similar API
+changeUrl = "https://api.cloudconvert.com/v2/file/change";
+// Placeholder URL for CloudConvert or similar API
+// Set parameters for update
+params.put("domain","cloudconvert.com");
+params.put("alias",oldAlias);
+params.put("new_alias",newAlias);
+// Call API to update the conversion job
+apiResponse = invokeurl
+[
+	url :updateUrl
+	type :PATCH
+	parameters:params
+	connection:"cloudtest"
+];
+if(urlChange == true)
+{
+	if(newAlias != "" || newAlias != null)
+	{
+		curAlias = newAlias;
+	}
+	else
+	{
+		curAlias = oldAlias;
+	}
+	// Set change parameters for URL modification
+	changeParams.put("alias",curAlias);
+	changeParams.put("domain","cloudconvert.com");
+	changeParams.put("url",newUrl);
+	// Call API to change the URL if needed
+	changeResponse = invokeurl
+	[
+		url :changeUrl
+		type :PATCH
+		parameters:changeParams
+		connection:"cloudtest"
+	];
+	info changeResponse;
+}
+if(apiResponse.get("code") == 0)
+{
+	updated = true;
+	if(urlChange == true)
+	{
+		statCode = changeResponse.get("code");
+		if(statCode != 0)
+		{
+			updated = false;
+			error = changeResponse.get("errors").get(0);
+		}
+	}
+	if(updated)
+	{
+		elements = list();
+		sections = list();
+		elements.add({"type":"title","text":"You can view and update all your file conversions here"});
+		// Get the list of available conversion jobs
+		listUrl = "https://api.cloudconvert.com/v2/jobs";
+		// Placeholder API URL
+		getUrl = "https://api.cloudconvert.com/v2/file";
+		// Placeholder API URL
+		apiResponse = invokeurl
+		[
+			url :listUrl
+			type :GET
+			connection:"cloudtest"
+		];
+		info apiResponse;
+		jobs = apiResponse.get("data");
+		count = 0;
+		// Display the list of conversion jobs
+		for each  job in jobs
+		{
+			alias = job.get("alias");
+			params = Map();
+			fetchUrl = invokeurl
+			[
+				url :getUrl + "/" + alias
+				type :GET
+				connection:"cloudtest"
+			];
+			info fetchUrl;
+			jobData = fetchUrl.get("data");
+			elements.add({"type":"fields","data":{{"Original File URL":jobData.get("url")},{"Tiny File URL":job.get("tiny_url")},{"Alias":job.get("alias")}},"style":{"short":false}});
+			elements.add({"type":"buttons","buttons":{{"label":"Convert","type":"invoke.function","name":"cloudConvertAction","id":job.get("alias") + "|convert"},{"label":"Cancel","type":"invoke.function","name":"cloudConvertAction","id":job.get("alias") + "|cancel"}}});
+			elements.add({"type":"divider"});
+			sections.add({"id":count,"elements":elements});
+			elements = list();
+			count = count + 1;
+		}
+		return {"type":"applet","tabs":{{"label":"Home","id":"homeTab"}},"active_tab":"homeTab","sections":sections};
+	}
+	else
+	{
+		failedBanner = {"type":"banner","status":"failure","text":"Failed! " + error};
+		return failedBanner;
+	}
+}
+else
+{
+	error = apiResponse.get("errors").get(0);
+	failedBanner = {"type":"banner","status":"failure","text":"Failed! " + error};
+	return failedBanner;
+}
+return response;

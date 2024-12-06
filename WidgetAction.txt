@@ -1,0 +1,76 @@
+
+data = target.get("id").toList("|");
+jobId = data.get(0);
+// Job ID or file ID
+func = data.get(1);
+// Action (e.g., "convert", "cancel")
+info jobId;
+if(func.containsIgnoreCase("convert"))
+{
+	// Prepare the conversion form
+	conversionForm = {"type":"form","title":"File Conversion","name":"File_Upload","hint":"You can upload only one file here","button_label":"Submit","inputs":{{"label":"File Url","name":"File_Url","placeholder":"Type Your File Url","mandatory":true,"type":"text","format":"url"},{"label":"File Format","name":"File_Format","placeholder":"Type the file format","min_length":"0","max_length":"25","mandatory":true,"type":"text"}},"action":{"type":"invoke.function","name":"ConvertFunction"}};
+	return conversionForm;
+}
+else if(func.containsIgnoreCase("cancel"))
+{
+	// Call API to cancel the conversion (if such an endpoint exists)
+	cancelUrl = "https://api.cloudconvert.com/v2/jobs/" + jobId + "/cancel";
+	cancelResponse = invokeurl
+	[
+		url :cancelUrl
+		type :POST
+		connection:"cloudtest"
+	];
+	info cancelResponse;
+	if(cancelResponse.get("code") == 0)
+	{
+		// Successfully cancelled, show updated conversion list
+		elements = list();
+		sections = list();
+		elements.add({"type":"title","text":"You can view and update all your file conversions here"});
+		listUrl = "https://api.cloudconvert.com/v2/jobs";
+		// Adjust the endpoint accordingly
+		apiResponse = invokeurl
+		[
+			url :listUrl
+			type :GET
+			connection:"cloudtest"
+		];
+		info apiResponse;
+		jobs = apiResponse.get("data");
+		count = 0;
+		for each  job in jobs
+		{
+			jobId = job.get("id");
+			params = Map();
+			fetchUrl = invokeurl
+			[
+				url :"https://api.cloudconvert.com/v2/jobs/" + jobId
+				type :GET
+				connection:"cloudtest"
+			];
+			info fetchUrl;
+			jobData = fetchUrl.get("data");
+			elements.add({"type":"fields","data":{{"Source Format":jobData.get("source_format")},{"Destination Format":jobData.get("destination_format")},{"Status":jobData.get("status")}},"style":{"short":false}});
+			elements.add({"type":"buttons","buttons":{{"label":"Convert","type":"invoke.function","name":"cloudConvertAction","id":jobData.get("id") + "|convert"},{"label":"Cancel","type":"invoke.function","name":"cloudConvertAction","id":jobData.get("id") + "|cancel"}}});
+			elements.add({"type":"divider"});
+			sections.add({"id":count,"elements":elements});
+			elements = list();
+			count = count + 1;
+		}
+		return {"type":"applet","tabs":{{"label":"Home","id":"homeTab"}},"active_tab":"homeTab","sections":sections};
+	}
+	else
+	{
+		failedBanner = {"type":"banner","status":"failure","text":"Failed to cancel the conversion"};
+		info cancelResponse.get("errors").get(0);
+		return failedBanner;
+	}
+}
+else
+{
+	failedBanner = {"type":"banner","status":"failure","text":"Invalid action"};
+	return failedBanner;
+}
+info target;
+return Map();

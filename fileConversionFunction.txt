@@ -1,0 +1,97 @@
+
+// Response & User Inputs
+response = Map();
+values = form.get("values");
+file_url = values.get("File_Url");
+file_format = values.get("File_Format");
+api = values.get("apiKey");
+headers = Map();
+headers.put("Authorization","Bearer " + api);
+//Replace YOUR_API_KEY_HERE with your actual API key
+headers.put("Content-Type","application/json");
+// Payload to send data to API
+convertPayload = Map();
+tasks = Map();
+import_task = Map();
+import_task.put("operation","import/url");
+import_task.put("url",file_url);
+tasks.put("import-my-file",import_task);
+convert_task = Map();
+convert_task.put("operation","convert");
+convert_task.put("input","import-my-file");
+convert_task.put("output_format",file_format);
+tasks.put("convert-my-file",convert_task);
+export_task = Map();
+export_task.put("operation","export/url");
+export_task.put("input","convert-my-file");
+tasks.put("export-my-file",export_task);
+convertPayload.put("tasks",tasks);
+// API call for conversion
+jobDetails = invokeurl
+[
+	url :"https://api.cloudconvert.com/v2/jobs"
+	type :POST
+	parameters:convertPayload.toString()
+	headers:headers
+];
+if(jobDetails.get("data") != null)
+{
+	// Extract conversion ID
+	jobId = jobDetails.get("data").get("id");
+	status = "waiting";
+	exportUrl = "";
+	// Attempts to check the status (approx. 20 attempts)
+	checkStatus = {1,2,3,4,5,6,7,8,8,9,10,11,12,13,14,15,16,17,18,19,20};
+	for each  element in checkStatus
+	{
+		// adding a delay to give some time for conversion (5 seconds)
+		getUrl("https://httpstat.us/200?sleep=5000");
+		// Check the conversion status
+		jobStatusResponse = invokeurl
+		[
+			url :"https://api.cloudconvert.com/v2/jobs/" + jobId
+			type :GET
+			headers:headers
+		];
+		status = jobStatusResponse.get("data").get("status");
+		if(status == "finished")
+		{
+			// get converted file url
+			exportTask = jobStatusResponse.get("data").get("tasks").get(0).get("result").get("files");
+			exportUrl = exportTask.get(0).get("url");
+			break;
+		}
+		else if(status == "failed")
+		{
+			break;
+		}
+	}
+	if(status == "finished")
+	{
+		response.put("text","Your file is ready: (Converted to " + file_format.toUpperCase() + ")\n [Download File](" + exportUrl + ")");
+	}
+	else if(status == "failed")
+	{
+		response.put("text","❌Sorry, your file conversion failed.🔄Please try again!!");
+	}
+	else
+	{
+		response.put("text","❌File conversion failed🚫Maximum attempts reached.🔄Please try again!.");
+	}
+}
+else
+{
+	if(jobDetails.get("code") == "CREDITS_EXCEEDED")
+	{
+		response.put("text","⚠️Sorry!🚫Unfortunately, today’s limit has been exceeded.⏳Try again tomorrow!🌟!");
+	}
+	else if(jobDetails.get("code") == "UNAUTHENTICATED")
+	{
+		response.put("text","⚠️ Sorry!🔑Either your account is not verified, or an invalid API key has been provided.🔄Please check and try again!.");
+	}
+	else
+	{
+		response.put("text",jobDetails);
+	}
+}
+return response;
