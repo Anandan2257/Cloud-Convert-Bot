@@ -4,7 +4,7 @@ This is the main interface for interacting with the bot. You provide a file URL 
 2.convert(/command):
 A simple command to initiate the file conversion. You send your file URL and preferred output format, and the bot does the work behind the scenes.
 
-3. Cloud Convert(Widget):
+3.Cloud Convert(Widget):
 The core service that enables the bot to handle a wide range of file formats. It powers the file conversion process efficiently and reliably.
 
 4.WidgetAction(Function):
